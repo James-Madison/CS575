@@ -1,0 +1,216 @@
+// Program 9:
+// This program reads from the file student_scores.txt, sums the test scores for each student, dropping the lowest score,
+// finds the student's average and outputs a letter grade as well as giving the classwide average for each test,
+// a total score for the class (lowest exam score dropped) and a letter grade for the class as a whole,
+// outputting to the file sample_grade.txt
+// This program uses functions to:
+// lowest_score: Calculates lowest of 3 test
+// getgrade: Returns letter grade
+// footer: Displays the overall average for test1, test2, test3, total (one decimal point), and grade.
+// Name: James Madison
+// Modified: 2018-04-24
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <iomanip>
+
+using namespace std;
+
+// Prototypes
+double lowest_score (double, double, double, double);
+char getgrade (double, char);
+void footer (ofstream&, double, double, double, int, char);
+
+int main()
+
+{
+    //Variables
+    ifstream fin;
+    ofstream fout;
+    string name;
+    double t1_avg, t2_avg, t3_avg;
+    double avg;
+    char grade;
+    double t1, t2, t3, tdrop;
+    double cw_tdrop, cw_avg;
+    double tsum;
+    double t1_sum = 0;
+    double t2_sum = 0;
+    double t3_sum = 0;
+    int cw_total;
+    int i = 0;
+    
+    
+    //Open input file, create output file
+    fin.open("/Users/jamesmadison/Desktop/CS 575/Program9/student_scores.txt");
+    fout.open("sample_grade.txt");
+    
+    //Test input file
+    if (fin)
+    {
+        cout << "Processing . . . " << endl;
+        cout << endl;
+    }
+    else
+    {
+        cout << "Error: File not found." << endl;
+        cout << endl;
+        system("pause");
+        return 0;
+    }
+    
+    // Skip header line of input file
+    fin.ignore(1000, '\n');
+    
+    // Write header line for output file
+    fout << left << setfill('.')
+    << setw(28) << "Name"
+    << right
+    << setw(4) << "T1" << setfill(' ')
+    << setw(6) << "T2"
+    << setw(6) << "T3"
+    << setw(6) << "Drop"
+    << setw(8) << "Total"
+    << setw(6) << "Grade" << '\n' << '\n'
+    << endl;
+    
+    // Create loop to input data from file & export data to new file
+    while (fin.good())
+    {
+        
+        // Get name
+        getline(fin, name, ',');
+        
+        // Get T1
+        fin >> t1;
+        
+        // Get T2
+        fin.ignore(1, ',');
+        fin >> t2;
+        
+        // Get T3
+        fin.ignore(1, ',');
+        fin >> t3;
+        fin.ignore(1, '\n');
+        
+        // Call function lowest_score
+        lowest_score (t1, t2, t3, tdrop);
+        
+        
+        // Sum test scores
+        tsum = (t1 + t2 + t3 - tdrop);
+        
+        // Average the test scores (dropping the lowest)
+        avg = tsum / 2;
+        
+        // Return letter grade using function "getgrade"
+        getgrade (avg, grade);
+        
+        // Running sum for T1
+        t1_sum = t1_sum + t1;
+        
+        // Running sum for T2
+        t2_sum = t2_sum + t2;
+        
+        // Running sum for T3
+        t3_sum = t3_sum + t3;
+        
+        // Counter
+        i++;
+        
+        // Output name, T1, T2, T3, Drop, Total, Grade
+        fout << left << setfill('.')
+        << setw(28) << name
+        << right
+        << setw(4) << t1 << setfill(' ')
+        << setw(6) << t2
+        << setw(6) << t3
+        << setw(6) << tdrop
+        << setw(8) << tsum
+        << setw(6) << grade;
+        
+    }
+    
+    
+    // Calculate class-wide average for T1
+    t1_avg = t1_sum / i;
+    
+    // Calculate class-wide average for T2
+    t2_avg = t2_sum / i;
+    
+    // Calculate class-wide average for T3
+    t3_avg = t3_sum / i;
+    
+    // Call lowest_score function to get class-wide drop score
+    lowest_score (t1_avg, t2_avg, t3_avg, cw_tdrop);
+    
+    // Calculate class-wide total
+    cw_total = (t1_avg + t2_avg + t3_avg - cw_tdrop);
+    
+    // Calc class-wide average
+    cw_avg = cw_total / 2;
+    
+    // Return class grade using function "getgrade"
+    getgrade (cw_avg, grade);
+    
+    // Output Footer
+    footer (fout, t1_avg, t2_avg, t3_avg, cw_total, grade);
+    
+    
+    // Return number of students
+    fout << '\n' << endl;
+    fout << "Number of students: " << i << endl;
+    
+    
+    // Close files
+    fin.close();
+    fout.close();
+    
+    
+    return 0;
+    
+}
+
+// Create "lowest_score" funciton to find lowest test score
+double lowest_score (double t1, double t2, double t3, double tdrop)
+{
+    tdrop = t1;
+    if (tdrop > t2)
+        tdrop = t2;
+    if (tdrop > t3)
+        tdrop = t3;
+    return tdrop;
+}
+
+// Create "getgrade" function to find letter grade
+char getgrade (double avg, char grade)
+{
+    if (avg >= 90 && avg <= 100)
+        grade = 'A';
+    else if (avg >= 80 && avg <= 89)
+        grade = 'B';
+    else if (avg >= 70 && avg <= 79)
+        grade = 'C';
+    else if (avg >= 60 && avg <= 69)
+        grade = 'D';
+    else
+        grade = 'F';
+    return grade;
+}
+
+// Create "footer" function to display the overall average for test1, test2, test3, total (one decimal point), and grade
+void footer(ofstream& fout, double t1_avg, double t2_avg, double t3_avg, int cw_total, char grade)
+{
+    fout << '\n' << left << setfill('.')
+    << setw(28) << "Average"
+    << right
+    << setw(4) << std::fixed << setprecision(1) << t1_avg << setfill(' ')
+    << setw(6) << std::fixed << setprecision(1) << t2_avg
+    << setw(6) << std::fixed << setprecision(1) << t3_avg
+    << setw(6) << " "
+    << setw(8) << cw_total
+    << setw(6) << grade
+    << endl;
+    return;
+}
